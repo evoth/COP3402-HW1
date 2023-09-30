@@ -5,13 +5,14 @@
 #include "regname.h"
 
 #define MEMORY_SIZE_IN_BYTES (65536 - BYTES_PER_WORD)
+#define MEMORY_SIZE_IN_WORDS (MEMORY_SIZE_IN_BYTES / BYTES_PER_WORD)
 
 // Memory union type
 typedef union
 {
     byte_type bytes[MEMORY_SIZE_IN_BYTES];
-    bin_instr_t instrs[MEMORY_SIZE_IN_BYTES];
-    word_type words[MEMORY_SIZE_IN_BYTES];
+    bin_instr_t instrs[MEMORY_SIZE_IN_WORDS];
+    word_type words[MEMORY_SIZE_IN_WORDS];
 } mem_u;
 
 // Register type

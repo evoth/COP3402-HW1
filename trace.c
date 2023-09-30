@@ -50,10 +50,8 @@ void trace_gpr(reg_type GPR[])
     for (int i = 0; i < NUM_REGISTERS; i++)
     {
         printf("GPR[%-3s]: %-4d", regname_get(i), GPR[i]);
-        printf(i % 6 == 5 ? "\n" : "\t");
+        printf(i % 6 == 5 || i == NUM_REGISTERS - 1 ? "\n" : "\t");
     }
-    if (NUM_REGISTERS % 6 != 0)
-        printf("\n");
 }
 
 // Prints values between $gp and $sp (data section)
