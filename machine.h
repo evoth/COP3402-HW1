@@ -14,7 +14,13 @@ typedef union
     word_type words[MEMORY_SIZE_IN_BYTES];
 } mem_u;
 
+// Register type
+typedef int reg_type;
+
 // Initialize machine state from binary object file
 extern void machine_init(const char *filename);
+
+// Executes loaded program and prints tracing ouput
+extern void machine_exec();
 
 #endif

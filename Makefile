@@ -6,15 +6,15 @@ VM = vm
 CC = gcc
 # on Linux, the following can be used with gcc:
 # CFLAGS = -fsanitize=address -static-libasan -g -std=c17 -Wall
-CFLAGS = -g -std=c17 -Wall
+CFLAGS = -g -std=c17 -Wall -mno-ms-bitfields
 MV = mv
-RM = rm -f
+RM = del /f
 SUBMISSIONZIPFILE = submission.zip
 ZIP = zip -9
 # Add the names of your own files with a .o suffix to link them into the VM
 VM_OBJECTS = machine_main.o machine.o \
              machine_types.o instruction.o bof.o \
-             regname.o utilities.o 
+             regname.o utilities.o trace.o
 SOURCESLIST = `echo $(VM_OBJECTS) | sed -e 's/\\.o/.c/g'`
 TESTSOURCES = vm_test0.asm vm_test1.asm vm_test2.asm \
 		vm_test3.asm vm_test4.asm vm_test5.asm
