@@ -1,4 +1,4 @@
- /* $Id: asm.y,v 1.34 2023/09/22 15:43:11 leavens Exp leavens $ */
+ /* $Id: asm.y,v 1.34 2023/09/22 15:43:11 leavens Exp $ */
 
 %code top {
 #include <stdio.h>

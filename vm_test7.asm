@@ -1,4 +1,4 @@
-	# $Id: vm_test7.asm,v 1.2 2023/09/22 15:43:11 leavens Exp leavens $
+	# $Id: vm_test7.asm,v 1.3 2023/09/22 20:16:39 leavens Exp $
 	# manipulation of the runtime stack
 	.text main
 main:   ADDI $0, $at, 1	# put numbers in all the registers

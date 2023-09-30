@@ -1,4 +1,4 @@
-	# $Id: vm_test1.asm,v 1.2 2023/09/18 04:54:43 leavens Exp $
+	# $Id: vm_test1.asm,v 1.4 2023/09/26 17:49:38 leavens Exp $
 	.text start
 start:	STRA
 	ADDI $0, $t0, 1   # $t0 is 1
@@ -9,7 +9,7 @@ start:	STRA
 	SUB $t0, $t2, $t3 # $t3 is 10 ('\n')
 	ADDI $0, $t1, 89  # $t1 is 89 ('Y')
 	NOTR
-	ADD $0, $t1, $a0  # move 90 to $a0
+	ADD $0, $t1, $a0  # move 89 to $a0
 	PCH
 	ADD $0, $t3, $a0  # move 10 to $a0
 	PCH

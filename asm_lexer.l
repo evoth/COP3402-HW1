@@ -1,4 +1,4 @@
-/* $Id: asm_lexer.l,v 1.25 2023/09/22 15:43:11 leavens Exp leavens $ */
+/* $Id: asm_lexer.l,v 1.26 2023/09/22 20:18:13 leavens Exp $ */
 /* Scanner for the SRM Assembly Language */
 
 %option header-file = "asm_lexer.h"
