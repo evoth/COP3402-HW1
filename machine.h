@@ -23,4 +23,7 @@ extern void machine_init(const char *filename);
 // Executes loaded program and prints tracing ouput
 extern void machine_exec();
 
+// Prints assembly instruction listing and initial data values
+extern void machine_print_program();
+
 #endif

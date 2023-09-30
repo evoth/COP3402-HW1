@@ -27,7 +27,7 @@ void machine_init(const char *filename)
     bh = bof_read_header(bf);
 
     // Initialize memory and registers to 0
-    memset(&memory, 0, bh.stack_bottom_addr + BYTES_PER_WORD);
+    memset(&memory, 0, bh.stack_bottom_addr + sizeof(word_type));
     memset(GPR, 0, sizeof(reg_type) * NUM_REGISTERS);
 
     // Load instructions
@@ -51,4 +51,19 @@ void machine_exec()
 {
     trace_state(GPR, memory, PC, HI, LO);
     trace_instr(PC, memory.instrs[PC]);
+}
+
+// Prints assembly instruction listing and initial data values
+void machine_print_program()
+{
+    printf("Addr Instruction\n");
+    const int text_start_index = bh.text_start_address / sizeof(bin_instr_t);
+    int instr_address;
+    for (int i = 0; i < bh.text_length / sizeof(bin_instr_t); i++)
+    {
+        instr_address = (text_start_index + i) * sizeof(bin_instr_t);
+        printf("%4d %s\n", instr_address,
+               instruction_assembly_form(memory.instrs[text_start_index + i]));
+    }
+    trace_data(GPR, memory);
 }

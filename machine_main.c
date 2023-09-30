@@ -1,9 +1,25 @@
+#include <stdlib.h>
+#include <string.h>
 #include "machine.h"
+#include "utilities.h"
 
 int main(int argc, char **argv)
 {
-    // TODO: assert to check for number of arguments
-    // TODO: check for -p flag
-    machine_init(argv[1]);
-    machine_exec();
+    if (argc == 2)
+    {
+        machine_init(argv[1]);
+        machine_exec();
+    }
+    else if (argc == 3 && strcmp(argv[1], "-p") == 0)
+    {
+        machine_init(argv[2]);
+        machine_print_program();
+    }
+    else
+    {
+        bail_with_error("Usage: %s vm_testN.bof\n       %s -p vm_testN.bof\n",
+                        argv[0], argv[0]);
+    }
+
+    return 0;
 }

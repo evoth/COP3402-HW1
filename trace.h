@@ -8,4 +8,7 @@ extern void trace_state(reg_type GPR[], mem_u memory, address_type PC, reg_type 
 // Prints address and assembly form of instruction
 extern void trace_instr(address_type PC, bin_instr_t bi);
 
+// Prints values between $gp and $sp (data section)
+extern void trace_data(reg_type GPR[], mem_u memory);
+
 #endif

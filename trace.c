@@ -32,8 +32,8 @@ void print_address_range(word_type words[], int start, int end, size_t size)
         printf("\n");
 }
 
-// Prints state of registers and memory
-void trace_state(reg_type GPR[], mem_u memory, address_type PC, reg_type HI, reg_type LO)
+// Prints values of special purpose registers
+void trace_special(address_type PC, reg_type HI, reg_type LO)
 {
     // Value of PC
     printf("%8s: %d", "PC", PC);
@@ -42,8 +42,11 @@ void trace_state(reg_type GPR[], mem_u memory, address_type PC, reg_type HI, reg
         printf("\t%8s: %d\t%8s: %d\n", "HI", HI, "LO", LO);
     else
         printf("\n");
+}
 
-    // Values of GPRs
+// Prints values of GPR
+void trace_gpr(reg_type GPR[])
+{
     for (int i = 0; i < NUM_REGISTERS; i++)
     {
         printf("GPR[%-3s]: %-4d", regname_get(i), GPR[i]);
@@ -51,12 +54,27 @@ void trace_state(reg_type GPR[], mem_u memory, address_type PC, reg_type HI, reg
     }
     if (NUM_REGISTERS % 6 != 0)
         printf("\n");
+}
 
-    // Values between $gp and $sp (data section)
+// Prints values between $gp and $sp (data section)
+void trace_data(reg_type GPR[], mem_u memory)
+{
     print_address_range(memory.words, GPR[GP], GPR[SP], sizeof(word_type));
+}
 
-    // Values between $sp and $fp (runtime stack)
+// Prints values between $sp and $fp (runtime stack)
+void trace_stack(reg_type GPR[], mem_u memory)
+{
     print_address_range(memory.words, GPR[SP], GPR[FP] + sizeof(word_type), sizeof(word_type));
+}
+
+// Prints state of registers and memory
+void trace_state(reg_type GPR[], mem_u memory, address_type PC, reg_type HI, reg_type LO)
+{
+    trace_special(PC, HI, LO);
+    trace_gpr(GPR);
+    trace_data(GPR, memory);
+    trace_stack(GPR, memory);
 }
 
 // Prints address and assembly form of instruction
