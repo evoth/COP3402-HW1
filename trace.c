@@ -2,11 +2,11 @@
 #include "trace.h"
 
 // Prints word values in memory over given range, omitting repeated zero values
-void print_address_range(word_type words[], int start, int end, size_t size)
+void print_address_range(word_type words[], int start, int end)
 {
     bool last_value_zero = false;
     int num_values_printed = 0;
-    for (int i = start; i < end; i += size)
+    for (int i = start; i < end; i += BYTES_PER_WORD)
     {
         // Repeated value of zero, so skip
         if (words[i] == 0 && last_value_zero)
@@ -59,13 +59,13 @@ void trace_gpr(reg_type GPR[])
 // Prints values between $gp and $sp (data section)
 void trace_data(reg_type GPR[], mem_u memory)
 {
-    print_address_range(memory.words, GPR[GP], GPR[SP], sizeof(word_type));
+    print_address_range(memory.words, GPR[GP], GPR[SP]);
 }
 
 // Prints values between $sp and $fp (runtime stack)
 void trace_stack(reg_type GPR[], mem_u memory)
 {
-    print_address_range(memory.words, GPR[SP], GPR[FP] + sizeof(word_type), sizeof(word_type));
+    print_address_range(memory.words, GPR[SP], GPR[FP] + BYTES_PER_WORD);
 }
 
 // Prints state of registers and memory
