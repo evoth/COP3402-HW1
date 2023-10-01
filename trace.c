@@ -2,31 +2,38 @@
 #include "trace.h"
 
 // Prints word values in memory over given range, omitting repeated zero values
+// If end is -1, stops at the first zero value
 void print_address_range(word_type words[], int start, int end)
 {
     bool last_value_zero = false;
     int num_values_printed = 0;
-    for (int i = start; i < end; i += BYTES_PER_WORD)
+    word_type value;
+    for (int i = start; end == -1 || i < end; i += BYTES_PER_WORD)
     {
+        value = words[i / BYTES_PER_WORD];
         // Repeated value of zero, so skip
-        if (words[i] == 0 && last_value_zero)
+        if (value == 0 && last_value_zero)
             continue;
 
         // Print address and value
-        printf("%8d: %d", i, words[i]);
-        printf(num_values_printed % 5 == 4 ? "\n" : "\t");
-        num_values_printed++;
+        printf("%8d: %d", i, value);
 
         // Record whether this value was zero and print ellipses if necessary
-        if (words[i] == 0)
+        if (value == 0)
         {
             last_value_zero = true;
-            printf("...");
+            printf("\t...");
         }
         else
         {
             last_value_zero = false;
         }
+
+        printf(num_values_printed % 5 == 4 ? "\n" : "\t");
+        num_values_printed++;
+
+        if (value == 0 && end == -1)
+            break;
     }
     if (num_values_printed % 5 != 0)
         printf("\n");
@@ -57,7 +64,7 @@ void trace_gpr(reg_type GPR[])
 // Prints values between $gp and $sp (data section)
 void trace_data(reg_type GPR[], mem_u memory)
 {
-    print_address_range(memory.words, GPR[GP], GPR[SP]);
+    print_address_range(memory.words, GPR[GP], -1);
 }
 
 // Prints values between $sp and $fp (runtime stack)

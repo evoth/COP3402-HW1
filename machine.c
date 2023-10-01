@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "assert.h"
 #include "machine.h"
 #include "machine_types.h"
 #include "trace.h"
@@ -22,6 +23,9 @@ BOFFILE bf;
 
 // Binary header object
 BOFHeader bh;
+
+// Max stack height (stack bottom address)
+int MAX_STACK_HEIGHT;
 
 // Whether tracing is currently activated
 bool tracing_active = true;
@@ -51,6 +55,7 @@ void machine_init(const char *filename)
     GPR[GP] = bh.data_start_address;
     GPR[FP] = GPR[SP] = bh.stack_bottom_addr;
     PC = bh.text_start_address;
+    MAX_STACK_HEIGHT = bh.stack_bottom_addr;
 }
 
 // Execute the syscall that corresponds to the given code
@@ -59,24 +64,21 @@ void execute_syscall(unsigned int code)
     switch (code)
     {
     case exit_sc:
-        // return "EXIT";
         exit(0);
         break;
     case print_str_sc:
-        // return "PSTR";
+        printf("%s", &memory.bytes[GPR[4]]);
         break;
     case print_char_sc:
-        // return "PCH";
+        GPR[2] = fputc(GPR[4], stdout);
         break;
     case read_char_sc:
-        // return "RCH";
+        GPR[2] = fgetc(stdin);
         break;
     case start_tracing_sc:
-        // return "STRA";
         tracing_active = true;
         break;
     case stop_tracing_sc:
-        // return "NOTR";
         tracing_active = false;
         break;
     default:
@@ -89,47 +91,56 @@ void execute_syscall(unsigned int code)
 // If func == SYSCALL_F, cascade to execute_syscall()
 void execute_func_instruction(bin_instr_t bi)
 {
+    long long int product;
     assert(bi.reg.op == REG_O);
     switch (bi.reg.func)
     {
     case ADD_F:
-        // return "ADD";
+        GPR[bi.reg.rd] = GPR[bi.reg.rs] + GPR[bi.reg.rt];
         break;
     case SUB_F:
-        // return "SUB";
+        GPR[bi.reg.rd] = GPR[bi.reg.rs] - GPR[bi.reg.rt];
         break;
     case MUL_F:
-        // return "MUL";
+        product = (long long int)GPR[bi.reg.rs] * (long long int)GPR[bi.reg.rt];
+        LO = (int)product;
+        HI = product >> 32;
         break;
     case DIV_F:
-        // return "DIV";
+        if (GPR[bi.reg.rt] == 0)
+        {
+            fprintf(stderr, "Divide by zero error");
+            exit(1);
+        }
+        LO = GPR[bi.reg.rs] / GPR[bi.reg.rt];
+        HI = GPR[bi.reg.rs] % GPR[bi.reg.rt];
         break;
     case MFHI_F:
-        // return "MFHI";
+        GPR[bi.reg.rd] = HI;
         break;
     case MFLO_F:
-        // return "MFLO";
+        GPR[bi.reg.rd] = LO;
         break;
     case AND_F:
-        // return "AND";
+        GPR[bi.reg.rd] = GPR[bi.reg.rs] & GPR[bi.reg.rt];
         break;
     case BOR_F:
-        // return "BOR";
+        GPR[bi.reg.rd] = GPR[bi.reg.rs] | GPR[bi.reg.rt];
         break;
     case NOR_F:
-        // return "NOR";
+        GPR[bi.reg.rd] = ~(GPR[bi.reg.rs] | GPR[bi.reg.rt]);
         break;
     case XOR_F:
-        // return "XOR";
+        GPR[bi.reg.rd] = GPR[bi.reg.rs] ^ GPR[bi.reg.rt];
         break;
     case SLL_F:
-        // return "SLL";
+        GPR[bi.reg.rd] = GPR[bi.reg.rt] << (int)bi.reg.shift;
         break;
     case SRL_F:
-        // return "SRL";
+        GPR[bi.reg.rd] = GPR[bi.reg.rt] >> (int)bi.reg.shift;
         break;
     case JR_F:
-        // return "JR";
+        PC = GPR[bi.reg.rs];
         break;
     case SYSCALL_F:
         execute_syscall(instruction_syscall_number(bi));
@@ -151,53 +162,74 @@ void execute_immed_instruction(bin_instr_t bi)
         execute_func_instruction(bi);
         break;
     case ADDI_O:
-        // return "ADDI";
         GPR[bi.immed.rt] = GPR[bi.immed.rs] + machine_types_sgnExt(bi.immed.immed);
         break;
     case ANDI_O:
-        // return "ANDI";
+        GPR[bi.immed.rt] = GPR[bi.immed.rs] & machine_types_zeroExt(bi.immed.immed);
         break;
     case BORI_O:
-        // return "BOI";
+        GPR[bi.immed.rt] = GPR[bi.immed.rs] | machine_types_zeroExt(bi.immed.immed);
         break;
     case XORI_O:
-        // return "XORI";
+        GPR[bi.immed.rt] = GPR[bi.immed.rs] ^ machine_types_zeroExt(bi.immed.immed);
         break;
     case BEQ_O:
-        // return "BEQ";
+        if (GPR[bi.immed.rs] == GPR[bi.immed.rt])
+            PC += machine_types_formOffset(bi.immed.immed);
         break;
     case BGEZ_O:
-        // return "BGEZ";
+        if (GPR[bi.immed.rs] >= 0)
+            PC += machine_types_formOffset(bi.immed.immed);
         break;
     case BGTZ_O:
         // return "BGTZ";
+        if (GPR[bi.immed.rs] > 0)
+            PC += machine_types_formOffset(bi.immed.immed);
         break;
     case BLEZ_O:
-        // return "BLEZ";
+        if (GPR[bi.immed.rs] <= 0)
+            PC += machine_types_formOffset(bi.immed.immed);
         break;
     case BLTZ_O:
-        // return "BLTZ";
+        if (GPR[bi.immed.rs] < 0)
+            PC += machine_types_formOffset(bi.immed.immed);
         break;
     case BNE_O:
-        // return "BNE";
+        if (GPR[bi.immed.rs] != GPR[bi.immed.rt])
+            PC += machine_types_formOffset(bi.immed.immed);
         break;
     case LBU_O:
-        // return "LBU";
+    {
+        int index = GPR[bi.immed.rs] + machine_types_formOffset(bi.immed.immed);
+        GPR[bi.immed.rt] = machine_types_zeroExt(memory.bytes[index]);
         break;
+    }
     case LW_O:
-        // return "LW";
+    {
+        int index = GPR[bi.immed.rs] + machine_types_formOffset(bi.immed.immed);
+        GPR[bi.immed.rt] = memory.words[index / BYTES_PER_WORD];
         break;
+    }
     case SB_O:
-        // return "SB";
+    {
+        int index = GPR[bi.immed.rs] + machine_types_formOffset(bi.immed.immed);
+        memory.bytes[index] = GPR[bi.immed.rt];
         break;
+    }
+    break;
     case SW_O:
-        // return "SW";
+    {
+        int index = GPR[bi.immed.rs] + machine_types_formOffset(bi.immed.immed);
+        memory.words[index / BYTES_PER_WORD] = GPR[bi.immed.rt];
         break;
+    }
+    break;
     case JMP_O:
-        // return "JMP";
+        PC = machine_types_formAddress(PC, bi.jump.addr);
         break;
     case JAL_O:
-        // return "JAL";
+        GPR[31] = PC;
+        PC = machine_types_formAddress(PC, bi.jump.addr);
         break;
     default:
         bail_with_error("Unknown op code (%d) in instruction_mnemonic!",
@@ -210,12 +242,29 @@ void execute_instruction(bin_instr_t IR)
     execute_immed_instruction(IR);
 }
 
+// Enforces required invariants
+void check_invariants()
+{
+    assert(PC % BYTES_PER_WORD == 0);
+    assert(GPR[GP] % BYTES_PER_WORD == 0);
+    assert(GPR[SP] % BYTES_PER_WORD == 0);
+    assert(GPR[FP] % BYTES_PER_WORD == 0);
+    assert(0 <= GPR[GP]);
+    assert(GPR[GP] < GPR[SP]);
+    assert(GPR[SP] <= GPR[FP]);
+    assert(GPR[FP] <= MAX_STACK_HEIGHT);
+    assert(0 <= PC);
+    assert(PC < MEMORY_SIZE_IN_BYTES);
+    assert(GPR[0] == 0);
+}
+
 // Executes loaded program and prints tracing ouput
 void machine_exec()
 {
     bin_instr_t IR;
     while (true)
     {
+        check_invariants();
         if (tracing_active)
         {
             trace_state(GPR, memory, PC, HI, LO);
