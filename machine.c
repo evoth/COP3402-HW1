@@ -24,9 +24,6 @@ BOFFILE bf;
 // Binary header object
 BOFHeader bh;
 
-// Max stack height (stack bottom address)
-int MAX_STACK_HEIGHT;
-
 // Whether tracing is currently activated
 bool tracing_active = true;
 
@@ -55,8 +52,6 @@ void machine_init(const char *filename)
     GPR[GP] = bh.data_start_address;
     GPR[FP] = GPR[SP] = bh.stack_bottom_addr;
     PC = bh.text_start_address;
-
-    MAX_STACK_HEIGHT = bh.stack_bottom_addr;
 }
 
 // Execute the syscall that corresponds to the given code
@@ -249,7 +244,7 @@ void check_invariants()
     assert(0 <= GPR[GP]);
     assert(GPR[GP] < GPR[SP]);
     assert(GPR[SP] <= GPR[FP]);
-    assert(GPR[FP] <= MAX_STACK_HEIGHT);
+    assert(GPR[FP] < MEMORY_SIZE_IN_BYTES);
     assert(0 <= PC);
     assert(PC < MEMORY_SIZE_IN_BYTES);
     assert(GPR[0] == 0);
