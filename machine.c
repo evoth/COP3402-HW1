@@ -55,11 +55,12 @@ void machine_init(const char *filename)
     GPR[GP] = bh.data_start_address;
     GPR[FP] = GPR[SP] = bh.stack_bottom_addr;
     PC = bh.text_start_address;
+
     MAX_STACK_HEIGHT = bh.stack_bottom_addr;
 }
 
 // Execute the syscall that corresponds to the given code
-void execute_syscall(unsigned int code)
+void execute_syscall_instruction(unsigned int code)
 {
     switch (code)
     {
@@ -82,14 +83,14 @@ void execute_syscall(unsigned int code)
         tracing_active = false;
         break;
     default:
-        bail_with_error("Unknown code (%d) in execute_syscall", code);
+        bail_with_error("Unknown code (%d) in execute_syscall_instruction", code);
         break;
     }
 }
 
 // Execute register/computational instruction (or syscall if func == SYSCALL_F)
-// If func == SYSCALL_F, cascade to execute_syscall()
-void execute_func_instruction(bin_instr_t bi)
+// If func == SYSCALL_F, cascade to execute_syscall_instruction()
+void execute_reg_instruction(bin_instr_t bi)
 {
     long long int product;
     assert(bi.reg.op == REG_O);
@@ -103,15 +104,12 @@ void execute_func_instruction(bin_instr_t bi)
         break;
     case MUL_F:
         product = (long long int)GPR[bi.reg.rs] * (long long int)GPR[bi.reg.rt];
-        LO = (int)product;
-        HI = product >> 32;
+        LO = (reg_type)product;
+        HI = (reg_type)(product >> 32);
         break;
     case DIV_F:
         if (GPR[bi.reg.rt] == 0)
-        {
-            fprintf(stderr, "Divide by zero error");
-            exit(1);
-        }
+            bail_with_error("Divide by zero error");
         LO = GPR[bi.reg.rs] / GPR[bi.reg.rt];
         HI = GPR[bi.reg.rs] % GPR[bi.reg.rt];
         break;
@@ -134,32 +132,32 @@ void execute_func_instruction(bin_instr_t bi)
         GPR[bi.reg.rd] = GPR[bi.reg.rs] ^ GPR[bi.reg.rt];
         break;
     case SLL_F:
-        GPR[bi.reg.rd] = GPR[bi.reg.rt] << (int)bi.reg.shift;
+        GPR[bi.reg.rd] = GPR[bi.reg.rt] << bi.reg.shift;
         break;
     case SRL_F:
-        GPR[bi.reg.rd] = GPR[bi.reg.rt] >> (int)bi.reg.shift;
+        GPR[bi.reg.rd] = GPR[bi.reg.rt] >> bi.reg.shift;
         break;
     case JR_F:
         PC = GPR[bi.reg.rs];
         break;
     case SYSCALL_F:
-        execute_syscall(instruction_syscall_number(bi));
+        execute_syscall_instruction(instruction_syscall_number(bi));
         break;
     default:
-        bail_with_error("Unknown function code (%d) in execute_func_instruction",
+        bail_with_error("Unknown function code (%d) in execute_reg_instruction",
                         bi.reg.func);
         break;
     }
 }
 
 // Execute immediate instruction
-// If op == REG_O, cascade to execute_func_instruction()
+// If op == REG_O, cascade to execute_reg_instruction()
 void execute_immed_instruction(bin_instr_t bi)
 {
     switch (bi.immed.op)
     { // pretend it's an immediate instruction
     case REG_O:
-        execute_func_instruction(bi);
+        execute_reg_instruction(bi);
         break;
     case ADDI_O:
         GPR[bi.immed.rt] = GPR[bi.immed.rs] + machine_types_sgnExt(bi.immed.immed);
@@ -182,7 +180,6 @@ void execute_immed_instruction(bin_instr_t bi)
             PC += machine_types_formOffset(bi.immed.immed);
         break;
     case BGTZ_O:
-        // return "BGTZ";
         if (GPR[bi.immed.rs] > 0)
             PC += machine_types_formOffset(bi.immed.immed);
         break;
@@ -232,7 +229,7 @@ void execute_immed_instruction(bin_instr_t bi)
         PC = machine_types_formAddress(PC, bi.jump.addr);
         break;
     default:
-        bail_with_error("Unknown op code (%d) in instruction_mnemonic!",
+        bail_with_error("Unknown op code (%d) in execute_immed_instruction!",
                         bi.immed.op);
     }
 }
