@@ -16,20 +16,21 @@ void print_address_range(word_type words[], int start, int end)
             continue;
 
         // Print address and value
-        printf("%8d: %d", i, value);
+        printf("%8d: %d\t", i, value);
 
         // Record whether this value was zero and print ellipses if necessary
         if (value == 0)
         {
             last_value_zero = true;
-            printf("\t...");
+            printf("...");
         }
         else
         {
             last_value_zero = false;
         }
 
-        printf(num_values_printed % 5 == 4 ? "\n" : "\t");
+        if (num_values_printed % 5 == 4)
+            printf("\n");
         num_values_printed++;
 
         if (value == 0 && end == -1)
