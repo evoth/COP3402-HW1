@@ -6,9 +6,9 @@ VM = vm
 CC = gcc
 # on Linux, the following can be used with gcc:
 # CFLAGS = -fsanitize=address -static-libasan -g -std=c17 -Wall
-CFLAGS = -g -std=c17 -Wall -mno-ms-bitfields
+CFLAGS = -g -std=c17 -Wall
 MV = mv
-RM = del /f
+RM = rm -f
 SUBMISSIONZIPFILE = submission.zip
 ZIP = zip -9
 # Add the names of your own files with a .o suffix to link them into the VM

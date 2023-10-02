@@ -208,14 +208,12 @@ void execute_immed_instruction(bin_instr_t bi)
         memory.bytes[index] = GPR[bi.immed.rt];
         break;
     }
-    break;
     case SW_O:
     {
         int index = GPR[bi.immed.rs] + machine_types_formOffset(bi.immed.immed);
         memory.words[index / BYTES_PER_WORD] = GPR[bi.immed.rt];
         break;
     }
-    break;
     case JMP_O:
         PC = machine_types_formAddress(PC, bi.jump.addr);
         break;
@@ -226,6 +224,7 @@ void execute_immed_instruction(bin_instr_t bi)
     default:
         bail_with_error("Unknown op code (%d) in execute_immed_instruction!",
                         bi.immed.op);
+        break;
     }
 }
 
